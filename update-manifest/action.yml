@@ -1,0 +1,64 @@
+name: 'Update Manifest'
+description: 'Clones a repo and updates a YAML field'
+inputs:
+  repository:
+    description: 'Repository name (e.g. Realm-Paper)'
+    required: true
+  branch:
+    description: 'Branch to update'
+    required: true
+    default: 'dev'
+  file_path:
+    description: 'Path to the yaml file in the repo'
+    required: true
+  yq_path:
+    description: 'Path in the yaml to update (e.g. .artifacts["game"].tag)'
+    required: true
+  new_value:
+    description: 'New value to set'
+    required: true
+  ssh_key:
+    description: 'SSH Private Key for git'
+    required: true
+  commit_message:
+    description: 'Commit message'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Update Manifest
+      shell: bash
+      run: |
+        # Setup SSH
+        mkdir -p ~/.ssh
+        echo "${{ inputs.ssh_key }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        
+        # Clone
+        # Use a unique dir name to avoid conflicts if multiple updates run
+        DIR="temp_update_${{ inputs.repository }}_${RANDOM}"
+        git clone --depth 1 --branch "${{ inputs.branch }}" "git@github.com:Runic-Studios/${{ inputs.repository }}.git" "$DIR"
+        
+        cd "$DIR"
+        
+        # Update with yq
+        # We need to handle quotes carefully for yq
+        yq eval -i "${{ inputs.yq_path }} = \"${{ inputs.new_value }}\"" "${{ inputs.file_path }}"
+        
+        # Commit and Push
+        git config user.email "runicrealms.mc@gmail.com"
+        git config user.name "RunicRealmsGithub"
+        
+        git add "${{ inputs.file_path }}"
+        if git diff-index --quiet HEAD; then
+           echo "No changes to commit"
+        else
+           git commit -m "${{ inputs.commit_message }}"
+           git push origin "${{ inputs.branch }}"
+        fi
+        
+        cd ..
+        rm -rf "$DIR"
+

@@ -1,0 +1,46 @@
+name: 'Process Artifact Manifest'
+description: 'Reads artifact-manifest.yaml and pulls all artifacts'
+inputs:
+  manifest_file:
+    description: 'Path to artifact-manifest.yaml'
+    required: true
+    default: 'artifact-manifest.yaml'
+  registry_username:
+    required: true
+  registry_password:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Process Manifest
+      shell: bash
+      run: |
+        if [ ! -f "${{ inputs.manifest_file }}" ]; then
+           echo "Manifest file ${{ inputs.manifest_file }} not found!"
+           exit 1
+        fi
+        
+        KEYS=$(yq eval '.artifacts | keys | .[]' "${{ inputs.manifest_file }}")
+        
+        for KEY in $KEYS; do
+           IMAGE=$(yq eval ".artifacts[\"$KEY\"].image" "${{ inputs.manifest_file }}")
+           TAG=$(yq eval ".artifacts[\"$KEY\"].tag" "${{ inputs.manifest_file }}")
+           PATH=$(yq eval ".artifacts[\"$KEY\"].path" "${{ inputs.manifest_file }}")
+           
+           echo "Pulling $KEY ($IMAGE:$TAG) to $PATH"
+           
+           # Use the oras-pull logic here inline, or call another action? 
+           # Composite actions cannot call other composite actions easily in the same repo without checkout.
+           # Since we are inside a composite action script, we just run the commands.
+           
+           parts=(${IMAGE//\// })
+           REGISTRY=${parts[0]}
+           PROJECT=${parts[1]}
+           ARTIFACT=${parts[2]}
+           
+           oras login $REGISTRY -u "${{ inputs.registry_username }}" -p "${{ inputs.registry_password }}"
+           mkdir -p "$(dirname "$PATH")"
+           oras pull "$IMAGE:$TAG" -o "$PATH"
+        done
+

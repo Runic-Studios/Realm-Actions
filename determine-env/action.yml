@@ -1,0 +1,26 @@
+name: 'Determine Environment'
+description: 'Determines if main deploy should run based on branch'
+outputs:
+  run_main_deploy:
+    description: "true if main branch, false if dev"
+    value: ${{ steps.check.outputs.run_main_deploy }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check Branch
+      id: check
+      shell: bash
+      run: |
+        BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        echo "Detected branch: $BRANCH_NAME"
+        
+        if [ "$BRANCH_NAME" == "dev" ]; then
+          echo "run_main_deploy=false" >> $GITHUB_OUTPUT
+        elif [ "$BRANCH_NAME" == "main" ]; then
+          echo "run_main_deploy=true" >> $GITHUB_OUTPUT
+        else
+           echo "Unsupported branch $BRANCH_NAME. Failing."
+           exit 1
+        fi
+

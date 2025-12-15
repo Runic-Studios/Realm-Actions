@@ -1,0 +1,32 @@
+name: 'ORAS Pull'
+description: 'Pulls an artifact using ORAS'
+inputs:
+  artifact_name:
+    required: true
+  tag:
+    required: true
+  download_path:
+    required: true
+  registry:
+    required: true
+  registry_project:
+    required: true
+  username:
+    required: true
+  password:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Pull Artifact
+      shell: bash
+      run: |
+        oras login ${{ inputs.registry }} -u "${{ inputs.username }}" -p "${{ inputs.password }}"
+        
+        mkdir -p "$(dirname "${{ inputs.download_path }}")"
+        
+        # ORAS pull usually pulls to current directory or respects -o depending on version
+        # Assuming ORAS v1+
+        oras pull ${{ inputs.registry }}/${{ inputs.registry_project }}/${{ inputs.artifact_name }}:${{ inputs.tag }} -o "${{ inputs.download_path }}"
+

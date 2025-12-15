@@ -1,0 +1,41 @@
+name: 'Create PR'
+description: 'Creates a Pull Request'
+inputs:
+  repository:
+    required: true
+  base:
+    required: true
+  head:
+    required: true
+  title:
+    required: true
+  body:
+    required: true
+  gh_token:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create PR
+      shell: bash
+      run: |
+        # Use a unique dir
+        DIR="temp_pr_${{ inputs.repository }}_${RANDOM}"
+        
+        # We need to clone to run 'gh pr create' in context, 
+        # or we can use 'gh pr create --repo' if we have auth. 
+        # However, checking out the repo is safer to ensure we have the refs.
+        
+        git clone "git@github.com:Runic-Studios/${{ inputs.repository }}.git" "$DIR"
+        cd "$DIR"
+        
+        echo "${{ inputs.gh_token }}" | gh auth login --with-token
+        
+        # Check if PR already exists to avoid error? gh pr create handles it usually by failing or we can check.
+        # For now, just run it.
+        gh pr create --base "${{ inputs.base }}" --head "${{ inputs.head }}" --title "${{ inputs.title }}" --body "${{ inputs.body }}" || echo "PR creation failed, maybe already exists?"
+        
+        cd ..
+        rm -rf "$DIR"
+

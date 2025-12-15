@@ -1,0 +1,39 @@
+name: 'Discord Notification'
+description: 'Sends a notification to Discord'
+inputs:
+  webhook_url:
+    description: 'Discord Webhook URL'
+    required: true
+  status:
+    description: 'Status of the build (START, SUCCESS, FAILURE)'
+    required: true
+  project_name:
+    description: 'Name of the project'
+    required: true
+  github_context:
+    description: 'JSON of github context (optional, used for extracting refs if not env vars)'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Send Notification
+      shell: bash
+      run: |
+        SHA="${{ github.sha }}"
+        SHA_SHORT=${SHA::7}
+        
+        if [ "${{ inputs.status }}" == "START" ]; then
+           CONTENT="Build Started: ${{ inputs.project_name }}\nBranch: ${{ github.ref_name }}\nCommit: $SHA_SHORT"
+        elif [ "${{ inputs.status }}" == "SUCCESS" ]; then
+           CONTENT="Build Success: ${{ inputs.project_name }}\nBranch: ${{ github.ref_name }}\nCommit: $SHA_SHORT"
+        elif [ "${{ inputs.status }}" == "FAILURE" ]; then
+           CONTENT="Build Failed: ${{ inputs.project_name }}\nBranch: ${{ github.ref_name }}\nCommit: $SHA_SHORT"
+        else
+           CONTENT="Build Status: ${{ inputs.status }}\nProject: ${{ inputs.project_name }}\nBranch: ${{ github.ref_name }}\nCommit: $SHA_SHORT"
+        fi
+        
+        curl -H "Content-Type: application/json" \
+        -d "{\"content\": \"$CONTENT\"}" \
+        ${{ inputs.webhook_url }}
+

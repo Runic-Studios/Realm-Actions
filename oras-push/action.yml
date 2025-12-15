@@ -1,0 +1,34 @@
+name: 'ORAS Push'
+description: 'Pushes an artifact using ORAS'
+inputs:
+  artifact_name:
+    required: true
+  tag:
+    required: true
+  file_path:
+    required: true
+  registry:
+    required: true
+  registry_project:
+    required: true
+  username:
+    required: true
+  password:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Push Artifact
+      shell: bash
+      run: |
+        oras login ${{ inputs.registry }} -u "${{ inputs.username }}" -p "${{ inputs.password }}"
+        
+        # Extract directory and filename to push correctly
+        DIR=$(dirname "${{ inputs.file_path }}")
+        FILENAME=$(basename "${{ inputs.file_path }}")
+        
+        # Change dir so ORAS pushes just the file, not the path structure
+        cd "$DIR"
+        oras push ${{ inputs.registry }}/${{ inputs.registry_project }}/${{ inputs.artifact_name }}:${{ inputs.tag }} "$FILENAME"
+
