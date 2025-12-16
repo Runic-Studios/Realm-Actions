@@ -30,16 +30,12 @@ runs:
            
            echo "Pulling $KEY ($IMAGE:$TAG) to $FILE_PATH"
            
-           # Use the oras-pull logic here inline, or call another action? 
-           # Composite actions cannot call other composite actions easily in the same repo without checkout.
-           # Since we are inside a composite action script, we just run the commands.
-           
            parts=(${IMAGE//\// })
            REGISTRY=${parts[0]}
            PROJECT=${parts[1]}
            ARTIFACT=${parts[2]}
            
-           oras login $REGISTRY -u "${{ inputs.registry_username }}" -p "${{ inputs.registry_password }}"
+           oras login $REGISTRY -u '${{ inputs.registry_username }}' -p '${{ inputs.registry_password }}'
            mkdir -p "$(dirname "$FILE_PATH")"
            oras pull "$IMAGE:$TAG" -o "$FILE_PATH"
         done

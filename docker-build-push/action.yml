@@ -28,7 +28,7 @@ runs:
     - name: Build and Push
       shell: bash
       run: |
-        echo "${{ inputs.password }}" | docker login ${{ inputs.registry }} -u "${{ inputs.username }}" --password-stdin
+        echo '${{ inputs.password }}' | docker login ${{ inputs.registry }} -u '${{ inputs.username }}' --password-stdin
         FULL_IMAGE="${{ inputs.registry }}/${{ inputs.registry_project }}/${{ inputs.image_name }}:${{ inputs.tag }}"
         
         docker build -t "$FULL_IMAGE" -f "${{ inputs.dockerfile }}" "${{ inputs.context }}"

@@ -22,7 +22,7 @@ runs:
     - name: Push Artifact
       shell: bash
       run: |
-        oras login ${{ inputs.registry }} -u "${{ inputs.username }}" -p "${{ inputs.password }}"
+        oras login ${{ inputs.registry }} -u '${{ inputs.username }}' -p '${{ inputs.password }}'
         
         # Extract directory and filename to push correctly
         DIR=$(dirname "${{ inputs.file_path }}")

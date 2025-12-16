@@ -22,7 +22,7 @@ runs:
     - name: Pull Artifact
       shell: bash
       run: |
-        oras login ${{ inputs.registry }} -u "${{ inputs.username }}" -p "${{ inputs.password }}"
+        oras login ${{ inputs.registry }} -u '${{ inputs.username }}' -p '${{ inputs.password }}'
         
         mkdir -p "$(dirname "${{ inputs.download_path }}")"
         
