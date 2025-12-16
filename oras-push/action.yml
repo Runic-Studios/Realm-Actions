@@ -30,5 +30,4 @@ runs:
         
         # Change dir so ORAS pushes just the file, not the path structure
         cd "$DIR"
-        oras push ${{ inputs.registry }}/${{ inputs.registry_project }}/${{ inputs.artifact_name }}:${{ inputs.tag }} "$FILENAME"
-        oras push ${{ inputs.registry }}/${{ inputs.registry_project }}/${{ inputs.artifact_name }}:latest "$FILENAME"
+        oras push ${{ inputs.registry }}/${{ inputs.registry_project }}/${{ inputs.artifact_name }}:${{ inputs.tag }},latest "$FILENAME"
