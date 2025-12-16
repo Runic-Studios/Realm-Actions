@@ -32,9 +32,13 @@ runs:
       run: |
         # Setup SSH
         mkdir -p ~/.ssh
-        echo "${{ inputs.ssh_key }}" > ~/.ssh/id_rsa
+        # Use printf to preserve newlines in the SSH key
+        printf '%s\n' "${{ inputs.ssh_key }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        # Add github.com to known_hosts
+        ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null || true
+        # Use GIT_SSH_COMMAND to handle host key verification more reliably
+        export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=accept-new"
         
         # Clone
         # Use a unique dir name to avoid conflicts if multiple updates run
@@ -58,6 +62,9 @@ runs:
            git commit -m "${{ inputs.commit_message }}"
            git push origin "${{ inputs.branch }}"
         fi
+        
+        # Cleanup SSH key
+        rm -f ~/.ssh/id_rsa
         
         cd ..
         rm -rf "$DIR"
