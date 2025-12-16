@@ -26,9 +26,9 @@ runs:
         for KEY in $KEYS; do
            IMAGE=$(yq eval ".artifacts[\"$KEY\"].image" "${{ inputs.manifest_file }}")
            TAG=$(yq eval ".artifacts[\"$KEY\"].tag" "${{ inputs.manifest_file }}")
-           PATH=$(yq eval ".artifacts[\"$KEY\"].path" "${{ inputs.manifest_file }}")
+           FILE_PATH=$(yq eval ".artifacts[\"$KEY\"].path" "${{ inputs.manifest_file }}")
            
-           echo "Pulling $KEY ($IMAGE:$TAG) to $PATH"
+           echo "Pulling $KEY ($IMAGE:$TAG) to $FILE_PATH"
            
            # Use the oras-pull logic here inline, or call another action? 
            # Composite actions cannot call other composite actions easily in the same repo without checkout.
@@ -40,7 +40,7 @@ runs:
            ARTIFACT=${parts[2]}
            
            oras login $REGISTRY -u "${{ inputs.registry_username }}" -p "${{ inputs.registry_password }}"
-           mkdir -p "$(dirname "$PATH")"
-           oras pull "$IMAGE:$TAG" -o "$PATH"
+           mkdir -p "$(dirname "$FILE_PATH")"
+           oras pull "$IMAGE:$TAG" -o "$FILE_PATH"
         done
 
