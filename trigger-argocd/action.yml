@@ -10,6 +10,10 @@ inputs:
   argocd_token:
     description: 'Bearer token for Argo CD API authentication'
     required: true
+  force:
+    description: 'Force sync (delete and recreate resources)'
+    required: false
+    default: 'false'
 
 runs:
   using: "composite"
@@ -17,9 +21,14 @@ runs:
     - name: Trigger Argo CD sync
       shell: bash
       run: |
+        if [ "${{ inputs.force }}" = "true" ]; then
+          DATA='{"strategy": {"hook": {"force": true}}}'
+        else
+          DATA='{}'
+        fi
         curl --fail --show-error --silent \
           -X POST \
           "${{ inputs.argocd_server }}/api/v1/applications/${{ inputs.argocd_app }}/sync" \
           -H "Authorization: Bearer ${{ inputs.argocd_token }}" \
           -H "Content-Type: application/json" \
-          --data '{}'
+          --data "$DATA"
